@@ -1,161 +1,252 @@
-import { View, Text, TouchableOpacity, StyleSheet, Image, Dimensions, SafeAreaView, ScrollView } from 'react-native';
-import { router } from 'expo-router';
+import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { useState } from 'react';
+import { Dimensions, Image, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const { width, height } = Dimensions.get('window');
 
 export default function WelcomeScreen() {
+  const [showStickyHeader, setShowStickyHeader] = useState(false);
+
+  const handleScroll = (event) => {
+    const offsetY = event.nativeEvent.contentOffset.y;
+    setShowStickyHeader(offsetY > 100);
+  };
+
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar style="dark" />
+      <StatusBar style="light" backgroundColor="transparent" translucent />
       
+      {/* Background Image */}
+      <Image
+        source={{ uri: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=2070' }}
+        style={styles.backgroundImage}
+        resizeMode="cover"
+      />
+      
+      {/* Sticky Header (Appears on scroll) */}
+      {showStickyHeader && (
+        <View style={styles.stickyHeader}>
+          <View style={styles.stickyHeaderContent}>
+            <MaterialIcons name="shopping-cart" size={24} color="#FF9900" />
+            <Text style={styles.stickyHeaderText}>MarketConnect</Text>
+          </View>
+        </View>
+      )}
+
       <ScrollView 
         contentContainerStyle={styles.scrollContainer}
         showsVerticalScrollIndicator={false}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
       >
-        {/* Hero Section */}
-        <View style={styles.heroContainer}>
-          <Image
-            source={{ uri: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=2070' }}
-            style={styles.heroImage}
-            resizeMode="cover"
-          />
+        {/* Main Hero Section */}
+        <View style={styles.heroSection}>
           <LinearGradient
-            colors={['rgba(255,255,255,0.9)', 'rgba(255,255,255,0.95)']}
-            style={styles.gradientOverlay}
-          />
-          
-          <View style={styles.logoContainer}>
-            <View style={styles.logoCircle}>
-              <Ionicons name="cart" size={40} color="#4A6FFF" />
+            colors={['rgba(0,0,0,0.7)', 'rgba(0,0,0,0.3)', 'transparent']}
+            style={styles.heroOverlay}
+          >
+            {/* Main App Header */}
+            <View style={styles.mainHeader}>
+              <View style={styles.appLogo}>
+                <MaterialIcons name="shopping-cart" size={36} color="#FF9900" />
+                <View style={styles.appTitleContainer}>
+                  <Text style={styles.appTitle}>Market</Text>
+                  <Text style={styles.appTitleAccent}>Connect</Text>
+                </View>
+              </View>
+              
+              <Text style={styles.heroTagline}>
+                Your Favorite Marketplace for Everything
+              </Text>
             </View>
-            <Text style={styles.brandName}>MarketConnect</Text>
-            <Text style={styles.tagline}>Seamless Commerce Experience</Text>
-          </View>
+
+            {/* Hero Stats */}
+            <View style={styles.heroStats}>
+              <View style={styles.statItem}>
+                <Text style={styles.statNumber}>50K+</Text>
+                <Text style={styles.statLabel}>Happy Customers</Text>
+              </View>
+              <View style={styles.statDivider} />
+              <View style={styles.statItem}>
+                <Text style={styles.statNumber}>5K+</Text>
+                <Text style={styles.statLabel}>Sellers</Text>
+              </View>
+              <View style={styles.statDivider} />
+              <View style={styles.statItem}>
+                <MaterialIcons name="verified" size={20} color="#34D399" />
+                <Text style={styles.statLabel}>Verified</Text>
+              </View>
+            </View>
+          </LinearGradient>
         </View>
 
-        {/* Main Content */}
-        <View style={styles.contentContainer}>
+        {/* Main Content Cards */}
+        <View style={styles.contentSection}>
+          {/* Welcome Card - Amazon Style */}
           <View style={styles.welcomeCard}>
-            <Text style={styles.welcomeTitle}>Welcome to Your</Text>
-            <Text style={styles.welcomeSubtitle}>Shopping & Selling Hub</Text>
-            <Text style={styles.description}>
-              Discover amazing products or start selling your own. Join our community of buyers and sellers.
+            <View style={styles.welcomeHeader}>
+              <Text style={styles.welcomeTitle}>Welcome!</Text>
+              <MaterialIcons name="waving-hand" size={24} color="#FF9900" />
+            </View>
+            <Text style={styles.welcomeSubtitle}>
+              Find everything you need at amazing prices
             </Text>
-          </View>
-
-          {/* Stats Cards */}
-          <View style={styles.statsContainer}>
-            <View style={styles.statCard}>
-              <Ionicons name="people" size={24} color="#4A6FFF" />
-              <Text style={styles.statNumber}>50K+</Text>
-              <Text style={styles.statLabel}>Active Users</Text>
-            </View>
-            <View style={styles.statCard}>
-              <Ionicons name="storefront" size={24} color="#4A6FFF" />
-              <Text style={styles.statNumber}>5K+</Text>
-              <Text style={styles.statLabel}>Verified Sellers</Text>
-            </View>
-            <View style={styles.statCard}>
-              <Ionicons name="shield-checkmark" size={24} color="#4A6FFF" />
-              <Text style={styles.statNumber}>100%</Text>
-              <Text style={styles.statLabel}>Secure</Text>
+            <View style={styles.featuresRow}>
+              <View style={styles.feature}>
+                <MaterialIcons name="local-shipping" size={20} color="#2563EB" />
+                <Text style={styles.featureText}>Free Delivery</Text>
+              </View>
+              <View style={styles.feature}>
+                <MaterialIcons name="security" size={20} color="#2563EB" />
+                <Text style={styles.featureText}>Secure Payment</Text>
+              </View>
+              <View style={styles.feature}>
+                <MaterialIcons name="refresh" size={20} color="#2563EB" />
+                <Text style={styles.featureText}>Easy Returns</Text>
+              </View>
             </View>
           </View>
 
-          {/* CTA Section */}
-          <View style={styles.ctaContainer}>
-            <Text style={styles.sectionTitle}>Get Started</Text>
+          {/* Action Section - Amazon Style */}
+          <View style={styles.actionSection}>
+            <Text style={styles.sectionTitle}>Sign in for better experience</Text>
             
+            {/* Sign In Button - Amazon Orange */}
             <TouchableOpacity 
-              style={styles.primaryButton}
+              style={styles.amazonButton}
               onPress={() => router.push('/(auth)/LoginScreen')}
               activeOpacity={0.9}
             >
               <LinearGradient
-                colors={['#4A6FFF', '#6B8CFF']}
-                style={styles.buttonGradient}
+                colors={['#FF9900', '#FFAD33']}
+                style={styles.amazonButtonGradient}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
               >
-                <Ionicons name="log-in" size={22} color="white" />
-                <Text style={styles.primaryButtonText}>Login to Your Account</Text>
+                <MaterialIcons name="login" size={22} color="white" />
+                <Text style={styles.amazonButtonText}>Sign in to your account</Text>
+                <MaterialIcons name="arrow-forward" size={22} color="white" />
               </LinearGradient>
             </TouchableOpacity>
-            
+
+            {/* Create Account Button */}
             <TouchableOpacity 
-              style={styles.secondaryButton}
+              style={styles.createAccountButton}
               onPress={() => router.push('/(auth)/SignupScreen')}
               activeOpacity={0.9}
             >
-              <View style={styles.secondaryButtonContent}>
-                <Ionicons name="person-add" size={22} color="#4A6FFF" />
-                <Text style={styles.secondaryButtonText}>Create New Account</Text>
+              <View style={styles.createAccountContent}>
+                <MaterialIcons name="person-add" size={22} color="#374151" />
+                <Text style={styles.createAccountText}>Create your MarketConnect account</Text>
               </View>
             </TouchableOpacity>
 
-            <View style={styles.divider}>
+            <View style={styles.dividerContainer}>
               <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>Or continue as</Text>
+              <Text style={styles.dividerText}>Or shop as guest</Text>
               <View style={styles.dividerLine} />
             </View>
 
-            {/* Role Selection */}
-            <View style={styles.roleContainer}>
+            {/* Quick Access Cards - Flipkart/Amazon Style */}
+            <View style={styles.quickAccessSection}>
+              <Text style={styles.quickAccessTitle}>Quick Access</Text>
+              
               <TouchableOpacity 
-                style={styles.roleCard}
+                style={styles.shopCard}
                 onPress={() => router.push('/(buyer)/HomeScreen')}
-                activeOpacity={0.8}
+                activeOpacity={0.9}
               >
-                <LinearGradient
-                  colors={['#667EEA', '#764BA2']}
-                  style={styles.roleGradient}
-                >
-                  <View style={styles.roleIconContainer}>
-                    <Ionicons name="bag-handle" size={28} color="white" />
+                <View style={styles.shopCardContent}>
+                  <View style={styles.shopCardIcon}>
+                    <MaterialIcons name="storefront" size={28} color="#2563EB" />
                   </View>
-                  <Text style={styles.roleTitle}>Buyer</Text>
-                  <Text style={styles.roleDescription}>
-                    Browse products & make purchases
-                  </Text>
-                  <View style={styles.roleCta}>
-                    <Text style={styles.roleCtaText}>Continue as Buyer</Text>
-                    <Ionicons name="arrow-forward" size={16} color="white" />
+                  <View style={styles.shopCardText}>
+                    <Text style={styles.shopCardTitle}>Shop as Guest</Text>
+                    <Text style={styles.shopCardSubtitle}>
+                      Browse millions of products without signing in
+                    </Text>
                   </View>
-                </LinearGradient>
+                  <MaterialIcons name="chevron-right" size={24} color="#9CA3AF" />
+                </View>
+                <View style={styles.shopCardFooter}>
+                  <Text style={styles.shopCardFooterText}>Start Shopping →</Text>
+                </View>
               </TouchableOpacity>
 
               <TouchableOpacity 
-                style={styles.roleCard}
+                style={styles.sellerCard}
                 onPress={() => router.push('/(seller)/Dashboard')}
-                activeOpacity={0.8}
+                activeOpacity={0.9}
               >
-                <LinearGradient
-                  colors={['#F093FB', '#F5576C']}
-                  style={styles.roleGradient}
-                >
-                  <View style={styles.roleIconContainer}>
-                    <Ionicons name="storefront" size={28} color="white" />
+                <View style={styles.sellerCardContent}>
+                  <View style={styles.sellerCardIcon}>
+                    <MaterialIcons name="business" size={28} color="#8B5CF6" />
                   </View>
-                  <Text style={styles.roleTitle}>Seller</Text>
-                  <Text style={styles.roleDescription}>
-                    List products & manage store
-                  </Text>
-                  <View style={styles.roleCta}>
-                    <Text style={styles.roleCtaText}>Continue as Seller</Text>
-                    <Ionicons name="arrow-forward" size={16} color="white" />
+                  <View style={styles.sellerCardText}>
+                    <Text style={styles.sellerCardTitle}>Become a Seller</Text>
+                    <Text style={styles.sellerCardSubtitle}>
+                      Start selling to millions of customers
+                    </Text>
                   </View>
-                </LinearGradient>
+                  <MaterialIcons name="chevron-right" size={24} color="#9CA3AF" />
+                </View>
+                <View style={styles.sellerCardFooter}>
+                  <Text style={styles.sellerCardFooterText}>Start Selling →</Text>
+                </View>
               </TouchableOpacity>
             </View>
 
-            {/* Terms */}
-            <Text style={styles.termsText}>
-              By continuing, you agree to our{' '}
-              <Text style={styles.linkText}>Terms of Service</Text> and{' '}
-              <Text style={styles.linkText}>Privacy Policy</Text>
+            {/* Benefits Section */}
+            <View style={styles.benefitsSection}>
+              <Text style={styles.benefitsTitle}>Why Shop With Us</Text>
+              <View style={styles.benefitsGrid}>
+                <View style={styles.benefitItem}>
+                  <MaterialIcons name="price-check" size={24} color="#059669" />
+                  <Text style={styles.benefitText}>Best Price</Text>
+                </View>
+                <View style={styles.benefitItem}>
+                  <MaterialIcons name="delivery-dining" size={24} color="#2563EB" />
+                  <Text style={styles.benefitText}>Fast Delivery</Text>
+                </View>
+                <View style={styles.benefitItem}>
+                  <MaterialIcons name="support-agent" size={24} color="#7C3AED" />
+                  <Text style={styles.benefitText}>24/7 Support</Text>
+                </View>
+                <View style={styles.benefitItem}>
+                  <MaterialIcons name="autorenew" size={24} color="#DC2626" />
+                  <Text style={styles.benefitText}>Easy Returns</Text>
+                </View>
+              </View>
+            </View>
+          </View>
+
+          {/* Footer */}
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>
+              By continuing, you agree to MarketConnect's{' '}
+              <Text style={styles.footerLink}>Conditions of Use</Text> and{' '}
+              <Text style={styles.footerLink}>Privacy Notice</Text>.
+            </Text>
+            
+            <View style={styles.footerLinks}>
+              <TouchableOpacity style={styles.footerLinkButton}>
+                <Text style={styles.footerLinkButtonText}>Help</Text>
+              </TouchableOpacity>
+              <View style={styles.footerDivider} />
+              <TouchableOpacity style={styles.footerLinkButton}>
+                <Text style={styles.footerLinkButtonText}>Privacy</Text>
+              </TouchableOpacity>
+              <View style={styles.footerDivider} />
+              <TouchableOpacity style={styles.footerLinkButton}>
+                <Text style={styles.footerLinkButtonText}>Terms</Text>
+              </TouchableOpacity>
+            </View>
+            
+            <Text style={styles.copyright}>
+              © 2021-2024 MarketConnect.com, Inc. or its affiliates
             </Text>
           </View>
         </View>
@@ -169,248 +260,403 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFFFFF',
   },
-  scrollContainer: {
-    flexGrow: 1,
-  },
-  heroContainer: {
-    height: height * 0.25,
-    position: 'relative',
-  },
-  heroImage: {
+  backgroundImage: {
+    position: 'absolute',
     width: '100%',
     height: '100%',
+    opacity: 0.9,
   },
-  gradientOverlay: {
+  stickyHeader: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
-    bottom: 0,
-  },
-  logoContainer: {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: [{ translateX: -75 }, { translateY: -40 }],
-    alignItems: 'center',
-    width: 150,
-  },
-  logoCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
     backgroundColor: 'white',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 12,
-    shadowColor: '#4A6FFF',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.2,
-    shadowRadius: 16,
-    elevation: 8,
-  },
-  brandName: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: '#1A1A1A',
-    letterSpacing: -0.5,
-  },
-  tagline: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 4,
-    fontWeight: '500',
-  },
-  contentContainer: {
-    paddingHorizontal: 24,
-    paddingTop: 32,
-    paddingBottom: 40,
-  },
-  welcomeCard: {
-    backgroundColor: '#F8FAFF',
-    borderRadius: 20,
-    padding: 24,
-    marginBottom: 32,
-    shadowColor: '#4A6FFF',
-    shadowOffset: { width: 0, height: 4 },
+    zIndex: 1000,
+    paddingTop: 10,
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 4,
+    shadowRadius: 4,
+    elevation: 5,
   },
-  welcomeTitle: {
-    fontSize: 28,
-    fontWeight: '300',
-    color: '#333',
-    marginBottom: 4,
+  stickyHeaderContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  welcomeSubtitle: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: '#1A1A1A',
+  stickyHeaderText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1F2937',
+    marginLeft: 8,
+  },
+  scrollContainer: {
+    flexGrow: 1,
+  },
+  heroSection: {
+    height: height * 0.4,
+  },
+  heroOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    paddingTop: 50,
+    paddingHorizontal: 20,
+  },
+  mainHeader: {
+    alignItems: 'center',
+    marginBottom: 30,
+  },
+  appLogo: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 16,
   },
-  description: {
-    fontSize: 16,
-    color: '#666',
-    lineHeight: 24,
-  },
-  statsContainer: {
+  appTitleContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 40,
+    marginLeft: 12,
   },
-  statCard: {
-    flex: 1,
+  appTitle: {
+    fontSize: 32,
+    fontWeight: '800',
+    color: 'white',
+  },
+  appTitleAccent: {
+    fontSize: 32,
+    fontWeight: '800',
+    color: '#FF9900',
+  },
+  heroTagline: {
+    fontSize: 18,
+    color: 'white',
+    textAlign: 'center',
+    fontWeight: '500',
+  },
+  heroStats: {
+    flexDirection: 'row',
+    justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F8FAFF',
-    padding: 16,
-    borderRadius: 16,
-    marginHorizontal: 6,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 20,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+  },
+  statItem: {
+    alignItems: 'center',
+    paddingHorizontal: 12,
   },
   statNumber: {
     fontSize: 20,
-    fontWeight: '700',
-    color: '#1A1A1A',
-    marginTop: 8,
+    fontWeight: 'bold',
+    color: '#1F2937',
+    marginBottom: 4,
   },
   statLabel: {
     fontSize: 12,
-    color: '#666',
-    marginTop: 4,
+    color: '#6B7280',
+    fontWeight: '500',
   },
-  ctaContainer: {
-    marginTop: 8,
+  statDivider: {
+    width: 1,
+    height: 30,
+    backgroundColor: '#D1D5DB',
   },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1A1A1A',
-    marginBottom: 20,
+  contentSection: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    marginTop: -30,
+    paddingTop: 30,
+    minHeight: height * 0.7,
   },
-  primaryButton: {
+  welcomeCard: {
+    backgroundColor: '#F3F4F6',
     borderRadius: 16,
-    marginBottom: 12,
-    overflow: 'hidden',
-    shadowColor: '#4A6FFF',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 8,
+    padding: 20,
+    marginHorizontal: 16,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
   },
-  buttonGradient: {
+  welcomeHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 18,
-    paddingHorizontal: 24,
+    marginBottom: 8,
   },
-  primaryButtonText: {
+  welcomeTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#1F2937',
+    marginRight: 8,
+  },
+  welcomeSubtitle: {
+    fontSize: 16,
+    color: '#4B5563',
+    marginBottom: 16,
+  },
+  featuresRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  feature: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'white',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  featureText: {
+    fontSize: 12,
+    color: '#374151',
+    marginLeft: 6,
+    fontWeight: '500',
+  },
+  actionSection: {
+    paddingHorizontal: 16,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1F2937',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  amazonButton: {
+    borderRadius: 8,
+    marginBottom: 12,
+    overflow: 'hidden',
+    shadowColor: '#F59E0B',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  amazonButtonGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+  },
+  amazonButtonText: {
     color: 'white',
     fontSize: 16,
     fontWeight: '600',
+    flex: 1,
     marginLeft: 12,
   },
-  secondaryButton: {
+  createAccountButton: {
     backgroundColor: 'white',
-    borderWidth: 2,
-    borderColor: '#E8EFFE',
-    borderRadius: 16,
-    marginBottom: 32,
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    borderRadius: 8,
+    marginBottom: 24,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
-    shadowRadius: 8,
+    shadowRadius: 4,
     elevation: 2,
   },
-  secondaryButtonContent: {
+  createAccountContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 18,
-    paddingHorizontal: 24,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
   },
-  secondaryButtonText: {
-    color: '#4A6FFF',
+  createAccountText: {
+    color: '#374151',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
+    flex: 1,
     marginLeft: 12,
   },
-  divider: {
+  dividerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 32,
+    marginBottom: 24,
   },
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: '#E8EFFE',
+    backgroundColor: '#E5E7EB',
   },
   dividerText: {
-    color: '#999',
+    color: '#6B7280',
     fontSize: 14,
     fontWeight: '500',
-    marginHorizontal: 16,
+    marginHorizontal: 12,
+    backgroundColor: 'white',
+    paddingHorizontal: 8,
   },
-  roleContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  quickAccessSection: {
     marginBottom: 32,
   },
-  roleCard: {
-    flex: 1,
-    borderRadius: 20,
-    overflow: 'hidden',
-    marginHorizontal: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.15,
-    shadowRadius: 24,
-    elevation: 12,
-  },
-  roleGradient: {
-    padding: 20,
-    alignItems: 'center',
-  },
-  roleIconContainer: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
+  quickAccessTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1F2937',
     marginBottom: 16,
   },
-  roleTitle: {
-    color: 'white',
-    fontSize: 20,
-    fontWeight: '700',
-    marginBottom: 8,
+  shopCard: {
+    backgroundColor: '#F0F9FF',
+    borderRadius: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#E0F2FE',
+    overflow: 'hidden',
   },
-  roleDescription: {
-    color: 'rgba(255,255,255,0.9)',
-    fontSize: 12,
-    textAlign: 'center',
-    marginBottom: 20,
-    lineHeight: 16,
-  },
-  roleCta: {
+  shopCardContent: {
     flexDirection: 'row',
     alignItems: 'center',
+    padding: 16,
   },
-  roleCtaText: {
-    color: 'white',
-    fontSize: 12,
+  shopCardIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#DBEAFE',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  shopCardText: {
+    flex: 1,
+  },
+  shopCardTitle: {
+    fontSize: 16,
     fontWeight: '600',
-    marginRight: 4,
+    color: '#1E40AF',
+    marginBottom: 4,
   },
-  termsText: {
+  shopCardSubtitle: {
+    fontSize: 12,
+    color: '#6B7280',
+  },
+  shopCardFooter: {
+    backgroundColor: '#DBEAFE',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+  },
+  shopCardFooterText: {
+    color: '#1E40AF',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  sellerCard: {
+    backgroundColor: '#FAF5FF',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#F3E8FF',
+    overflow: 'hidden',
+  },
+  sellerCardContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+  },
+  sellerCardIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#EDE9FE',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  sellerCardTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#7C3AED',
+    marginBottom: 4,
+  },
+  sellerCardSubtitle: {
+    fontSize: 12,
+    color: '#6B7280',
+  },
+  sellerCardFooter: {
+    backgroundColor: '#EDE9FE',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+  },
+  sellerCardFooterText: {
+    color: '#7C3AED',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  benefitsSection: {
+    backgroundColor: '#F9FAFB',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 32,
+  },
+  benefitsTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1F2937',
+    marginBottom: 16,
     textAlign: 'center',
-    fontSize: 12,
-    color: '#999',
-    lineHeight: 18,
   },
-  linkText: {
-    color: '#4A6FFF',
-    fontWeight: '600',
+  benefitsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  benefitItem: {
+    width: '48%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'white',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 12,
+  },
+  benefitText: {
+    fontSize: 14,
+    color: '#374151',
+    marginLeft: 8,
+    fontWeight: '500',
+  },
+  footer: {
+    paddingHorizontal: 16,
+    paddingBottom: 32,
+  },
+  footerText: {
+    fontSize: 12,
+    color: '#6B7280',
+    textAlign: 'center',
+    lineHeight: 18,
+    marginBottom: 20,
+  },
+  footerLink: {
+    color: '#2563EB',
+    textDecorationLine: 'underline',
+  },
+  footerLinks: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  footerLinkButton: {
+    paddingHorizontal: 12,
+  },
+  footerLinkButtonText: {
+    color: '#2563EB',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  footerDivider: {
+    width: 1,
+    height: 16,
+    backgroundColor: '#D1D5DB',
+  },
+  copyright: {
+    fontSize: 11,
+    color: '#9CA3AF',
+    textAlign: 'center',
   },
 });

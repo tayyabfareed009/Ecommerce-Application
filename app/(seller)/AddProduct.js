@@ -1,29 +1,30 @@
-// app/(seller)/AddProduct.js
+import { MaterialIcons } from '@expo/vector-icons';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
-import { useState, useEffect } from "react";
-import {
-    ActivityIndicator,
-    Alert,
-    Image,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
-} from "react-native";
-import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from "expo-router";
+import { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  Dimensions,
+  Image,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
+const { width, height } = Dimensions.get('window');
 const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dkwxr9ege/image/upload";
 
 export default function AddProduct() {
   const params = useLocalSearchParams();
   const editProduct = params.editProduct ? JSON.parse(params.editProduct) : null;
   
-  // Initialize with empty form
   const [product, setProduct] = useState({
     name: "",
     description: "",
@@ -36,41 +37,14 @@ export default function AddProduct() {
   const [uploading, setUploading] = useState(false);
   const [imageQuality, setImageQuality] = useState("high");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isInitialized, setIsInitialized] = useState(false); // ADDED: Track initialization
+  const [categories] = useState([
+    "Electronics", "Fashion", "Home & Kitchen", "Beauty", "Sports", "Books", 
+    "Toys", "Automotive", "Health", "Groceries", "Furniture", "Jewelry"
+  ]);
 
-  // FIXED: Use a stable way to check if editProduct exists and prevent infinite loops
-  useEffect(() => {
-    // Only run once when component mounts OR when editProduct changes from null to having a value
-    if (editProduct && !isInitialized) {
-      console.log("Initializing edit product:", editProduct.id);
-      setProduct({
-        name: editProduct.name || "",
-        description: editProduct.description || "",
-        price: editProduct.price ? editProduct.price.toString() : "",
-        category: editProduct.category || "",
-        stock: editProduct.stock ? editProduct.stock.toString() : "",
-        image_url: editProduct.image_url || "",
-      });
-      setIsInitialized(true);
-    } else if (!editProduct && isInitialized) {
-      // Reset form when not editing (adding new product)
-      setProduct({
-        name: "",
-        description: "",
-        price: "",
-        category: "",
-        stock: "",
-        image_url: "",
-      });
-      setIsInitialized(false);
-    }
-  }, [editProduct, isInitialized]); // FIXED: Added isInitialized to dependencies
-
-  // Alternative simpler approach - initialize directly without useEffect
-  // This runs once when the component mounts
+  // Initialize form with edit product data
   useEffect(() => {
     if (editProduct) {
-      console.log("Setting edit product data");
       setProduct({
         name: editProduct.name || "",
         description: editProduct.description || "",
@@ -80,7 +54,7 @@ export default function AddProduct() {
         image_url: editProduct.image_url || "",
       });
     }
-  }, []); // Empty dependency array - runs only once on mount
+  }, [editProduct]);
 
   const pickAndUploadImage = async () => {
     try {
@@ -141,7 +115,7 @@ export default function AddProduct() {
         setProduct(prev => ({ ...prev, image_url: finalUrl }));
         
         Alert.alert(
-          "Image Uploaded", 
+          "Success", 
           `${imageQuality === "ultra" ? "Ultra HD" : "High quality"} image uploaded successfully.`
         );
       } else {
@@ -196,14 +170,10 @@ export default function AddProduct() {
       }
 
       const productId = editProduct?.id;
-      console.log("Product ID for update:", productId);
 
       const url = productId
         ? `https://ecommerce-app-three-rho.vercel.app/update-product/${productId}`
         : "https://ecommerce-app-three-rho.vercel.app/add-product";
-
-      console.log("Using URL:", url);
-      console.log("Method:", productId ? "PUT" : "POST");
 
       const payload = {
         name: product.name.trim(),
@@ -214,8 +184,6 @@ export default function AddProduct() {
         image_url: product.image_url,
       };
 
-      console.log("Payload:", payload);
-
       const res = await fetch(url, {
         method: productId ? "PUT" : "POST",
         headers: {
@@ -225,11 +193,8 @@ export default function AddProduct() {
         body: JSON.stringify(payload),
       });
 
-      console.log("Response status:", res.status);
-
       if (res.ok) {
         const responseData = await res.json();
-        console.log("Success response:", responseData);
         
         Alert.alert(
           "Success", 
@@ -258,7 +223,6 @@ export default function AddProduct() {
         }
       } else {
         const errorText = await res.text();
-        console.log("Error response:", errorText);
         Alert.alert("Error", errorText || "Failed to save product");
       }
     } catch (err) {
@@ -270,23 +234,34 @@ export default function AddProduct() {
   };
 
   return (
-    <View style={styles.container}>
-      {/* Fixed Header */}
+    <SafeAreaView style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity 
-          style={styles.backButton}
-          onPress={() => router.back()}
-        >
-          <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
-        </TouchableOpacity>
-        <Text style={styles.title}>
-          {editProduct ? "Edit Product" : "Add New Product"}
-        </Text>
-        {editProduct && (
-          <Text style={styles.productIdText}>
-            ID: {editProduct.id?.substring(0, 8)}...
-          </Text>
-        )}
+        <View style={styles.headerContent}>
+          <TouchableOpacity 
+            style={styles.backButton}
+            onPress={() => router.back()}
+          >
+            <MaterialIcons name="arrow-back" size={24} color="#374151" />
+          </TouchableOpacity>
+          
+          <View style={styles.headerCenter}>
+            <Text style={styles.headerTitle}>
+              {editProduct ? "Edit Product" : "Add New Product"}
+            </Text>
+            {editProduct && (
+              <Text style={styles.headerSubtitle}>
+                Editing: {editProduct.name?.substring(0, 20)}...
+              </Text>
+            )}
+          </View>
+          
+          <View style={styles.headerActions}>
+            <TouchableOpacity style={styles.helpButton}>
+              <MaterialIcons name="help-outline" size={22} color="#6B7280" />
+            </TouchableOpacity>
+          </View>
+        </View>
       </View>
 
       <ScrollView 
@@ -294,9 +269,210 @@ export default function AddProduct() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* Product Preview Section */}
-        <View style={styles.previewSection}>
-          <Text style={styles.sectionTitle}>Product Preview</Text>
+        {/* Image Upload Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Product Image</Text>
+          <Text style={styles.sectionSubtitle}>Upload a clear product photo</Text>
+          
+          <TouchableOpacity 
+            style={styles.imageUploadCard}
+            onPress={pickAndUploadImage}
+            disabled={uploading || isSubmitting}
+          >
+            {uploading ? (
+              <View style={styles.uploadingContainer}>
+                <ActivityIndicator size="large" color="#FF9900" />
+                <Text style={styles.uploadingText}>Uploading Image...</Text>
+              </View>
+            ) : product.image_url ? (
+              <Image 
+                source={{ uri: product.image_url }} 
+                style={styles.uploadedImage}
+                resizeMode="cover"
+              />
+            ) : (
+              <View style={styles.imagePlaceholder}>
+                <View style={styles.imagePlaceholderIcon}>
+                  <MaterialIcons name="add-photo-alternate" size={48} color="#9CA3AF" />
+                </View>
+                <Text style={styles.uploadTitle}>Upload Product Image</Text>
+                <Text style={styles.uploadSubtitle}>Tap to select from gallery</Text>
+                <Text style={styles.uploadHint}>Recommended: 4:3 aspect ratio</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+
+          {/* Quality Selector */}
+          <View style={styles.qualitySection}>
+            <Text style={styles.qualityLabel}>Image Quality</Text>
+            <View style={styles.qualityButtons}>
+              <TouchableOpacity
+                style={[
+                  styles.qualityButton,
+                  imageQuality === "high" && styles.qualityButtonActive
+                ]}
+                onPress={() => setImageQuality("high")}
+                disabled={uploading || isSubmitting}
+              >
+                <MaterialIcons 
+                  name="photo" 
+                  size={20} 
+                  color={imageQuality === "high" ? "#FF9900" : "#6B7280"} 
+                />
+                <Text style={[
+                  styles.qualityButtonText,
+                  imageQuality === "high" && styles.qualityButtonTextActive
+                ]}>High Quality</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={[
+                  styles.qualityButton,
+                  imageQuality === "ultra" && styles.qualityButtonActive
+                ]}
+                onPress={() => setImageQuality("ultra")}
+                disabled={uploading || isSubmitting}
+              >
+                <MaterialIcons 
+                  name="high-quality" 
+                  size={20} 
+                  color={imageQuality === "ultra" ? "#FF9900" : "#6B7280"} 
+                />
+                <Text style={[
+                  styles.qualityButtonText,
+                  imageQuality === "ultra" && styles.qualityButtonTextActive
+                ]}>Ultra HD</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+
+        {/* Basic Information */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Basic Information</Text>
+          
+          <View style={styles.formGroup}>
+            <View style={styles.labelContainer}>
+              <MaterialIcons name="title" size={18} color="#6B7280" />
+              <Text style={styles.label}>Product Name *</Text>
+            </View>
+            <TextInput
+              style={styles.input}
+              value={product.name}
+              onChangeText={(text) => setProduct({ ...product, name: text })}
+              placeholder="Enter product name"
+              placeholderTextColor="#9CA3AF"
+              editable={!uploading && !isSubmitting}
+            />
+          </View>
+
+          <View style={styles.formGroup}>
+            <View style={styles.labelContainer}>
+              <MaterialIcons name="category" size={18} color="#6B7280" />
+              <Text style={styles.label}>Category *</Text>
+            </View>
+            
+            {/* Category Picker */}
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              style={styles.categoryScroll}
+              contentContainerStyle={styles.categoryContainer}
+            >
+              {categories.map((cat) => (
+                <TouchableOpacity
+                  key={cat}
+                  style={[
+                    styles.categoryButton,
+                    product.category === cat && styles.categoryButtonActive
+                  ]}
+                  onPress={() => setProduct({ ...product, category: cat })}
+                  disabled={uploading || isSubmitting}
+                >
+                  <Text style={[
+                    styles.categoryButtonText,
+                    product.category === cat && styles.categoryButtonTextActive
+                  ]}>
+                    {cat}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+            
+            <TextInput
+              style={[styles.input, styles.marginTop]}
+              value={product.category}
+              onChangeText={(text) => setProduct({ ...product, category: text })}
+              placeholder="Or type custom category"
+              placeholderTextColor="#9CA3AF"
+              editable={!uploading && !isSubmitting}
+            />
+          </View>
+        </View>
+
+        {/* Pricing & Stock */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Pricing & Stock</Text>
+          
+          <View style={styles.row}>
+            <View style={[styles.formGroup, styles.flex1]}>
+              <View style={styles.labelContainer}>
+                <MaterialIcons name="attach-money" size={18} color="#6B7280" />
+                <Text style={styles.label}>Price ($) *</Text>
+              </View>
+              <TextInput
+                style={styles.input}
+                value={product.price}
+                onChangeText={(text) => setProduct({ ...product, price: text })}
+                placeholder="0.00"
+                placeholderTextColor="#9CA3AF"
+                keyboardType="decimal-pad"
+                editable={!uploading && !isSubmitting}
+              />
+            </View>
+            
+            <View style={[styles.formGroup, styles.flex1, styles.marginLeft]}>
+              <View style={styles.labelContainer}>
+                <MaterialIcons name="inventory" size={18} color="#6B7280" />
+                <Text style={styles.label}>Stock Quantity</Text>
+              </View>
+              <TextInput
+                style={styles.input}
+                value={product.stock}
+                onChangeText={(text) => setProduct({ ...product, stock: text })}
+                placeholder="0"
+                placeholderTextColor="#9CA3AF"
+                keyboardType="number-pad"
+                editable={!uploading && !isSubmitting}
+              />
+            </View>
+          </View>
+        </View>
+
+        {/* Description */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Description</Text>
+          <Text style={styles.sectionSubtitle}>Add detailed product information</Text>
+          
+          <View style={styles.formGroup}>
+            <TextInput
+              style={styles.textarea}
+              value={product.description}
+              onChangeText={(text) => setProduct({ ...product, description: text })}
+              placeholder="Describe your product in detail..."
+              placeholderTextColor="#9CA3AF"
+              multiline
+              numberOfLines={6}
+              textAlignVertical="top"
+              editable={!uploading && !isSubmitting}
+            />
+          </View>
+        </View>
+
+        {/* Preview Card */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Preview</Text>
+          
           <View style={styles.previewCard}>
             {product.image_url ? (
               <Image 
@@ -305,217 +481,51 @@ export default function AddProduct() {
                 resizeMode="cover"
               />
             ) : (
-              <View style={styles.previewPlaceholder}>
-                <Ionicons name="image-outline" size={40} color="#CBD5E1" />
-                <Text style={styles.previewPlaceholderText}>No image uploaded</Text>
+              <View style={styles.previewImagePlaceholder}>
+                <MaterialIcons name="image" size={40} color="#E5E7EB" />
               </View>
             )}
             
-            <View style={styles.previewDetails}>
-              <Text style={styles.previewName} numberOfLines={1}>
+            <View style={styles.previewContent}>
+              <Text style={styles.previewName} numberOfLines={2}>
                 {product.name || "Product Name"}
               </Text>
+              
+              <View style={styles.previewMeta}>
+                <View style={styles.previewCategory}>
+                  <MaterialIcons name="category" size={12} color="#6B7280" />
+                  <Text style={styles.previewCategoryText}>
+                    {product.category || "Category"}
+                  </Text>
+                </View>
+                
+                <View style={styles.previewStock}>
+                  <MaterialIcons name="inventory" size={12} color="#6B7280" />
+                  <Text style={styles.previewStockText}>
+                    {product.stock || "0"} in stock
+                  </Text>
+                </View>
+              </View>
+              
               <Text style={styles.previewPrice}>
-                {product.price ? `$${product.price}` : "$0.00"}
+                ${product.price ? parseFloat(product.price).toFixed(2) : "0.00"}
               </Text>
-              <Text style={styles.previewCategory}>
-                {product.category || "Category"}
+              
+              <Text style={styles.previewDescription} numberOfLines={2}>
+                {product.description || "Product description will appear here"}
               </Text>
-              <Text style={styles.previewStock}>
-                Stock: {product.stock || "0"}
-              </Text>
-              {editProduct && (
-                <Text style={styles.editNote}>
-                  Editing existing product
-                </Text>
-              )}
             </View>
-          </View>
-        </View>
-
-        {/* Image Upload Section */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Ionicons name="image-outline" size={20} color="#0D9488" />
-            <Text style={styles.sectionTitle}>Product Image</Text>
-          </View>
-          
-          <View style={styles.imageUploadContainer}>
-            <TouchableOpacity 
-              style={[
-                styles.imageUploadArea,
-                product.image_url && styles.imageUploadAreaWithImage
-              ]}
-              onPress={pickAndUploadImage}
-              disabled={uploading || isSubmitting}
-            >
-              {uploading ? (
-                <View style={styles.uploadingContainer}>
-                  <ActivityIndicator size="large" color="#0D9488" />
-                  <Text style={styles.uploadingText}>Uploading...</Text>
-                </View>
-              ) : product.image_url ? (
-                <Image 
-                  source={{ uri: product.image_url }} 
-                  style={styles.uploadedImage}
-                  resizeMode="cover"
-                />
-              ) : (
-                <View style={styles.imagePlaceholder}>
-                  <Ionicons name="cloud-upload-outline" size={40} color="#CBD5E1" />
-                  <Text style={styles.uploadTitle}>Upload Product Image</Text>
-                  <Text style={styles.uploadSubtitle}>
-                    Tap to select from gallery
-                  </Text>
-                </View>
-              )}
-            </TouchableOpacity>
-
-            {/* Quality Selector */}
-            <View style={styles.qualityContainer}>
-              <Text style={styles.qualityLabel}>Image Quality:</Text>
-              <View style={styles.qualityButtons}>
-                <TouchableOpacity
-                  style={[
-                    styles.qualityOption,
-                    imageQuality === "high" && styles.qualityOptionActive
-                  ]}
-                  onPress={() => setImageQuality("high")}
-                  disabled={uploading || isSubmitting}
-                >
-                  <Ionicons
-                    name={imageQuality === "high" ? "radio-button-on" : "radio-button-off"} 
-                    size={16} 
-                    color={imageQuality === "high" ? "#0D9488" : "#94A3B8"} 
-                  />
-                  <Text style={[
-                    styles.qualityOptionText,
-                    imageQuality === "high" && styles.qualityOptionTextActive
-                  ]}>High Quality</Text>
-                </TouchableOpacity>
-                
-                <TouchableOpacity
-                  style={[
-                    styles.qualityOption,
-                    imageQuality === "ultra" && styles.qualityOptionActive
-                  ]}
-                  onPress={() => setImageQuality("ultra")}
-                  disabled={uploading || isSubmitting}
-                >
-                  <Ionicons
-                    name={imageQuality === "ultra" ? "radio-button-on" : "radio-button-off"} 
-                    size={16} 
-                    color={imageQuality === "ultra" ? "#0D9488" : "#94A3B8"} 
-                  />
-                  <Text style={[
-                    styles.qualityOptionText,
-                    imageQuality === "ultra" && styles.qualityOptionTextActive
-                  ]}>Ultra HD</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            <TouchableOpacity
-              style={[
-                styles.changeImageButton,
-                (uploading || isSubmitting) && styles.changeImageButtonDisabled
-              ]}
-              onPress={pickAndUploadImage}
-              disabled={uploading || isSubmitting}
-            >
-              <Ionicons name="sync-outline" size={18} color="#0D9488" />
-              <Text style={styles.changeImageButtonText}>
-                {product.image_url ? "Change Image" : "Select Image"}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Product Details Form */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Ionicons name="document-text-outline" size={20} color="#0D9488" />
-            <Text style={styles.sectionTitle}>Product Details</Text>
-          </View>
-          
-          <View style={styles.form}>
-            {[
-              { 
-                label: "Product Name", 
-                key: "name", 
-                required: true,
-                placeholder: "Enter product name",
-                icon: "pricetag-outline"
-              },
-              { 
-                label: "Category", 
-                key: "category", 
-                required: true,
-                placeholder: "e.g., Electronics, Clothing",
-                icon: "grid-outline"
-              },
-              { 
-                label: "Price ($)", 
-                key: "price", 
-                required: true,
-                keyboardType: "decimal-pad",
-                placeholder: "Enter price",
-                icon: "cash-outline"
-              },
-              { 
-                label: "Stock Quantity", 
-                key: "stock", 
-                keyboardType: "number-pad",
-                placeholder: "Enter stock quantity",
-                icon: "cube-outline"
-              },
-              { 
-                label: "Description", 
-                key: "description", 
-                multiline: true,
-                placeholder: "Enter product description...",
-                icon: "document-text-outline"
-              },
-            ].map((field) => (
-              <View key={field.key} style={styles.fieldContainer}>
-                <View style={styles.fieldLabel}>
-                  <Ionicons name={field.icon} size={16} color="#64748B" />
-                  <Text style={styles.fieldLabelText}>
-                    {field.label}
-                    {field.required && <Text style={styles.requiredStar}> *</Text>}
-                  </Text>
-                </View>
-                
-                <TextInput
-                  style={[
-                    styles.fieldInput,
-                    field.multiline && styles.multilineInput
-                  ]}
-                  value={product[field.key]}
-                  onChangeText={(text) => setProduct({ ...product, [field.key]: text })}
-                  placeholder={field.placeholder}
-                  placeholderTextColor="#94A3B8"
-                  keyboardType={field.keyboardType || "default"}
-                  multiline={field.multiline}
-                  numberOfLines={field.multiline ? 4 : 1}
-                  textAlignVertical={field.multiline ? "top" : "center"}
-                  editable={!uploading && !isSubmitting}
-                />
-              </View>
-            ))}
           </View>
         </View>
 
         {/* Action Buttons */}
-        <View style={styles.actionContainer}>
+        <View style={styles.actionSection}>
           <TouchableOpacity
-            style={[
-              styles.cancelButton,
-              (uploading || isSubmitting) && styles.buttonDisabled
-            ]}
+            style={styles.cancelButton}
             onPress={() => router.back()}
             disabled={uploading || isSubmitting}
           >
+            <MaterialIcons name="close" size={20} color="#6B7280" />
             <Text style={styles.cancelButtonText}>Cancel</Text>
           </TouchableOpacity>
           
@@ -529,13 +539,13 @@ export default function AddProduct() {
             disabled={!product.name || !product.price || !product.category || !product.image_url || uploading || isSubmitting}
           >
             {isSubmitting ? (
-              <ActivityIndicator size="small" color="#FFFFFF" />
+              <ActivityIndicator size="small" color="white" />
             ) : (
               <>
-                <Ionicons
-                  name={editProduct ? "checkmark-done-outline" : "add-outline"} 
+                <MaterialIcons
+                  name={editProduct ? "save" : "add-circle"} 
                   size={20} 
-                  color="#FFFFFF" 
+                  color="white" 
                 />
                 <Text style={styles.submitButtonText}>
                   {editProduct ? "Update Product" : "Add Product"}
@@ -544,359 +554,401 @@ export default function AddProduct() {
             )}
           </TouchableOpacity>
         </View>
-        
-        <View style={styles.spacer} />
+
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>
+            Make sure all information is accurate before publishing.
+          </Text>
+          <Text style={styles.footerCopyright}>
+            © 2024 MarketConnect Seller Center
+          </Text>
+        </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8FAFC",
+    backgroundColor: '#FFFFFF',
   },
-
-  // Header Styles
   header: {
-    height: 120,
-    backgroundColor: "#0D9488",
+    backgroundColor: '#F3F4F6',
+    paddingTop: 20,
+    paddingBottom: 20,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  headerContent: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    paddingHorizontal: 20,
-    paddingTop: 40,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
-    marginTop: 4,
+    padding: 8,
+    backgroundColor: 'white',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
   },
-  title: {
-    fontSize: 22,
-    fontWeight: "700",
-    color: "#FFFFFF",
+  headerCenter: {
     flex: 1,
-    marginTop: 8,
+    marginLeft: 16,
   },
-  productIdText: {
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1F2937',
+  },
+  headerSubtitle: {
     fontSize: 12,
-    color: "#E0F2F1",
-    marginTop: 8,
-    fontStyle: 'italic',
+    color: '#6B7280',
+    marginTop: 2,
   },
-  editNote: {
-    fontSize: 12,
-    color: "#0D9488",
-    marginTop: 4,
-    fontStyle: 'italic',
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-
-  // Scroll View
+  helpButton: {
+    padding: 8,
+  },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
+    paddingTop: 16,
+    paddingBottom: 32,
   },
-
-  // Section Styles
   section: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 12,
+    backgroundColor: 'white',
+    borderRadius: 16,
     padding: 20,
+    marginHorizontal: 16,
     marginBottom: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.05,
     shadowRadius: 8,
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: "#F1F5F9",
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
+    elevation: 3,
   },
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#1E293B",
-    marginLeft: 8,
-  },
-
-  // Preview Section
-  previewSection: {
-    marginBottom: 16,
-  },
-  previewCard: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 12,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: "#F1F5F9",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  previewImage: {
-    width: '100%',
-    height: 180,
-    backgroundColor: "#F8FAFC",
-  },
-  previewPlaceholder: {
-    width: '100%',
-    height: 180,
-    backgroundColor: "#F8FAFC",
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  previewPlaceholderText: {
-    fontSize: 14,
-    color: "#94A3B8",
-    marginTop: 8,
-  },
-  previewDetails: {
-    padding: 16,
-  },
-  previewName: {
     fontSize: 18,
-    fontWeight: "700",
-    color: "#1E293B",
+    fontWeight: '700',
+    color: '#1F2937',
     marginBottom: 4,
   },
-  previewPrice: {
-    fontSize: 22,
-    fontWeight: "800",
-    color: "#0D9488",
-    marginBottom: 8,
-  },
-  previewCategory: {
+  sectionSubtitle: {
     fontSize: 14,
-    color: "#64748B",
-    backgroundColor: "#F1F5F9",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 6,
-    alignSelf: 'flex-start',
-    marginBottom: 8,
-  },
-  previewStock: {
-    fontSize: 14,
-    color: "#475569",
-    fontWeight: "500",
-  },
-
-  // Image Upload Section
-  imageUploadContainer: {
-    alignItems: 'center',
-  },
-  imageUploadArea: {
-    width: '100%',
-    height: 200,
-    borderRadius: 10,
-    backgroundColor: "#F8FAFC",
-    borderWidth: 2,
-    borderColor: "#E2E8F0",
-    borderStyle: 'dashed',
-    overflow: "hidden",
+    color: '#6B7280',
     marginBottom: 16,
   },
-  imageUploadAreaWithImage: {
-    borderColor: "#0D9488",
+  imageUploadCard: {
+    backgroundColor: '#F9FAFB',
+    borderRadius: 12,
+    height: 200,
+    overflow: 'hidden',
+    borderWidth: 2,
+    borderColor: '#E5E7EB',
+    borderStyle: 'dashed',
+    marginBottom: 16,
   },
   uploadingContainer: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#F8FAFC",
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F9FAFB',
   },
   uploadingText: {
-    marginTop: 12,
     fontSize: 14,
-    color: "#64748B",
-    fontWeight: "500",
+    color: '#6B7280',
+    marginTop: 12,
+    fontWeight: '500',
   },
   uploadedImage: {
-    width: "100%",
-    height: "100%",
+    width: '100%',
+    height: '100%',
   },
   imagePlaceholder: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     padding: 20,
+  },
+  imagePlaceholderIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#F3F4F6',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
   },
   uploadTitle: {
     fontSize: 16,
-    fontWeight: "600",
-    color: "#475569",
-    marginTop: 12,
+    fontWeight: '600',
+    color: '#374151',
     marginBottom: 4,
   },
   uploadSubtitle: {
-    fontSize: 13,
-    color: "#94A3B8",
-    textAlign: 'center',
+    fontSize: 14,
+    color: '#6B7280',
+    marginBottom: 4,
   },
-
-  // Quality Selector
-  qualityContainer: {
-    width: '100%',
-    marginBottom: 16,
+  uploadHint: {
+    fontSize: 12,
+    color: '#9CA3AF',
+  },
+  qualitySection: {
+    marginTop: 8,
   },
   qualityLabel: {
     fontSize: 14,
-    fontWeight: "600",
-    color: "#475569",
-    marginBottom: 10,
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: 12,
   },
   qualityButtons: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    gap: 12,
   },
-  qualityOption: {
+  qualityButton: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F9FAFB',
     paddingVertical: 12,
     paddingHorizontal: 16,
-    borderRadius: 8,
-    backgroundColor: "#F8FAFC",
+    borderRadius: 10,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
-    marginHorizontal: 4,
+    borderColor: '#E5E7EB',
+    gap: 8,
   },
-  qualityOptionActive: {
-    backgroundColor: "#F0FDF4",
-    borderColor: "#0D9488",
+  qualityButtonActive: {
+    backgroundColor: '#FFF7ED',
+    borderColor: '#FF9900',
   },
-  qualityOptionText: {
+  qualityButtonText: {
     fontSize: 14,
-    fontWeight: "500",
-    color: "#64748B",
-    marginLeft: 8,
+    fontWeight: '600',
+    color: '#6B7280',
   },
-  qualityOptionTextActive: {
-    color: "#0D9488",
-    fontWeight: "600",
+  qualityButtonTextActive: {
+    color: '#FF9900',
   },
-
-  // Change Image Button
-  changeImageButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-    backgroundColor: "#FFFFFF",
-    borderWidth: 1,
-    borderColor: "#0D9488",
-    width: '100%',
+  formGroup: {
+    marginBottom: 20,
   },
-  changeImageButtonDisabled: {
-    opacity: 0.5,
-  },
-  changeImageButtonText: {
-    color: "#0D9488",
-    fontSize: 14,
-    fontWeight: "600",
-    marginLeft: 8,
-  },
-  buttonDisabled: {
-    opacity: 0.5,
-  },
-
-  // Form Styles
-  form: {
-    marginTop: 10,
-  },
-  fieldContainer: {
-    marginBottom: 16,
-  },
-  fieldLabel: {
+  labelContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 8,
   },
-  fieldLabelText: {
+  label: {
     fontSize: 14,
-    fontWeight: "600",
-    color: "#475569",
+    fontWeight: '600',
+    color: '#374151',
     marginLeft: 8,
   },
-  requiredStar: {
-    color: "#EF4444",
-  },
-  fieldInput: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 8,
+  input: {
+    backgroundColor: '#F9FAFB',
+    borderRadius: 10,
     paddingVertical: 14,
     paddingHorizontal: 16,
-    fontSize: 15,
-    borderWidth: 1.5,
-    borderColor: "#E2E8F0",
-    color: "#1E293B",
+    fontSize: 16,
+    color: '#1F2937',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
   },
-  multilineInput: {
-    minHeight: 100,
-    textAlignVertical: "top",
-    paddingTop: 14,
+  textarea: {
+    backgroundColor: '#F9FAFB',
+    borderRadius: 10,
+    padding: 16,
+    fontSize: 16,
+    color: '#1F2937',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    minHeight: 120,
+    textAlignVertical: 'top',
   },
-
-  // Action Buttons
-  actionContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+  row: {
+    flexDirection: 'row',
+  },
+  flex1: {
+    flex: 1,
+  },
+  marginLeft: {
+    marginLeft: 12,
+  },
+  marginTop: {
+    marginTop: 12,
+  },
+  categoryScroll: {
+    marginHorizontal: -20,
+    paddingLeft: 20,
+  },
+  categoryContainer: {
+    paddingRight: 20,
+  },
+  categoryButton: {
+    backgroundColor: '#F9FAFB',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    marginRight: 8,
+    marginBottom: 8,
+  },
+  categoryButtonActive: {
+    backgroundColor: '#FFF7ED',
+    borderColor: '#FF9900',
+  },
+  categoryButtonText: {
+    fontSize: 14,
+    color: '#6B7280',
+    fontWeight: '500',
+  },
+  categoryButtonTextActive: {
+    color: '#FF9900',
+    fontWeight: '600',
+  },
+  previewCard: {
+    backgroundColor: '#F9FAFB',
+    borderRadius: 12,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  previewImage: {
+    width: '100%',
+    height: 160,
+    backgroundColor: '#F3F4F6',
+  },
+  previewImagePlaceholder: {
+    width: '100%',
+    height: 160,
+    backgroundColor: '#F3F4F6',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  previewContent: {
+    padding: 16,
+  },
+  previewName: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1F2937',
+    marginBottom: 8,
+  },
+  previewMeta: {
+    flexDirection: 'row',
+    marginBottom: 12,
+    gap: 12,
+  },
+  previewCategory: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#EFF6FF',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    gap: 4,
+  },
+  previewCategoryText: {
+    fontSize: 12,
+    color: '#2563EB',
+    fontWeight: '500',
+  },
+  previewStock: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F0FDF4',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    gap: 4,
+  },
+  previewStockText: {
+    fontSize: 12,
+    color: '#059669',
+    fontWeight: '500',
+  },
+  previewPrice: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#FF9900',
+    marginBottom: 8,
+  },
+  previewDescription: {
+    fontSize: 14,
+    color: '#6B7280',
+    lineHeight: 20,
+  },
+  actionSection: {
+    flexDirection: 'row',
+    gap: 12,
+    paddingHorizontal: 16,
     marginTop: 8,
     marginBottom: 20,
   },
   cancelButton: {
     flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F9FAFB',
     paddingVertical: 16,
-    borderRadius: 10,
-    backgroundColor: "#FFFFFF",
-    borderWidth: 1.5,
-    borderColor: "#E2E8F0",
-    alignItems: "center",
-    marginRight: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    gap: 8,
   },
   cancelButtonText: {
-    color: "#64748B",
-    fontSize: 15,
-    fontWeight: "600",
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#6B7280',
   },
   submitButton: {
     flex: 2,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FF9900',
     paddingVertical: 16,
-    borderRadius: 10,
-    backgroundColor: "#0D9488",
+    borderRadius: 12,
     gap: 8,
+    shadowColor: '#FF9900',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
   submitButtonDisabled: {
     opacity: 0.5,
   },
   submitButtonText: {
-    color: "#FFFFFF",
-    fontSize: 15,
-    fontWeight: "600",
+    fontSize: 16,
+    fontWeight: '700',
+    color: 'white',
   },
-
-  spacer: {
-    height: 40,
+  footer: {
+    paddingHorizontal: 16,
+    paddingBottom: 32,
+    alignItems: 'center',
+  },
+  footerText: {
+    fontSize: 12,
+    color: '#6B7280',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  footerCopyright: {
+    fontSize: 11,
+    color: '#9CA3AF',
   },
 });

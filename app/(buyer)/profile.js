@@ -1,16 +1,11 @@
+import { MaterialIcons } from '@expo/vector-icons';
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { LinearGradient } from 'expo-linear-gradient';
+import { router } from "expo-router";
 import { useEffect, useState } from "react";
-import {
-  Alert,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
-import { MaterialIcons } from '@expo/vector-icons'; // CHANGED: Use @expo/vector-icons
-import { router } from "expo-router"; // ADDED: Expo Router import
+import { Alert, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
-export default function ProfileScreen() { // REMOVED: navigation prop
+export default function ProfileScreen() {
   const [user, setUser] = useState({
     name: "",
     email: "",
@@ -43,7 +38,7 @@ export default function ProfileScreen() { // REMOVED: navigation prop
           style: "destructive",
           onPress: async () => {
             await AsyncStorage.clear();
-            router.replace("/(auth)/LoginScreen"); // CHANGED: router instead of navigation
+            router.replace("/(auth)/LoginScreen");
           },
         },
       ]
@@ -51,310 +46,436 @@ export default function ProfileScreen() { // REMOVED: navigation prop
   };
 
   const handleEditProfile = () => {
-    // ADDED: Since EditProfile screen doesn't exist yet, redirect to home
     Alert.alert("Coming Soon", "Edit profile feature will be available soon!");
-    // router.push("/EditProfile"); // Uncomment when you create EditProfile screen
   };
 
   const handleViewOrders = () => {
     Alert.alert("Coming Soon", "Order history feature will be available soon!");
-    // router.push("/Orders"); // Uncomment when you create Orders screen
   };
 
+  const profileOptions = [
+    { icon: "shopping-bag", title: "My Orders", subtitle: "Track & view orders", onPress: handleViewOrders },
+    { icon: "favorite", title: "Wishlist", subtitle: "Saved items", onPress: () => Alert.alert("Wishlist", "Your saved items") },
+    { icon: "local-offer", title: "My Offers", subtitle: "Special deals for you", onPress: () => Alert.alert("Offers", "Your special offers") },
+    { icon: "history", title: "Recently Viewed", subtitle: "Browsing history", onPress: () => Alert.alert("History", "Recently viewed items") },
+    { icon: "settings", title: "Settings", subtitle: "App preferences", onPress: () => Alert.alert("Settings", "Coming soon!") },
+    { icon: "help-outline", title: "Help & Support", subtitle: "Get assistance", onPress: () => Alert.alert("Help", "Contact support@marketconnect.com") },
+    { icon: "security", title: "Privacy Policy", subtitle: "Your data is safe", onPress: () => Alert.alert("Privacy", "Your data is protected") },
+    { icon: "star", title: "Rate App", subtitle: "Share your feedback", onPress: () => Alert.alert("Rate Us", "Thank you!") },
+  ];
+
   return (
-    <View style={styles.container}>
-      {/* Premium Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>My Profile</Text>
-        <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
-          <MaterialIcons name="logout" size={26} color="#FFFFFF" /> {/* CHANGED */}
-        </TouchableOpacity>
-      </View>
-
-      {/* Floating Profile Card */}
-      <View style={styles.profileCard}>
-        {/* Avatar with Edit Button */}
-        <View style={styles.avatarContainer}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>
-              {user.name.charAt(0).toUpperCase()}
-            </Text>
+    <SafeAreaView style={styles.container}>
+      {/* Header with Gradient Background */}
+      <LinearGradient
+        colors={['#FF9900', '#FFAD33']}
+        style={styles.header}
+      >
+        <View style={styles.headerContent}>
+          <View style={styles.headerLeft}>
+            <MaterialIcons name="person" size={28} color="white" />
+            <Text style={styles.headerTitle}>My Account</Text>
           </View>
-          <TouchableOpacity style={styles.editAvatarBtn} onPress={handleEditProfile}>
-            <MaterialIcons name="edit" size={18} color="#FFFFFF" /> {/* CHANGED */}
+          <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
+            <MaterialIcons name="logout" size={22} color="white" />
           </TouchableOpacity>
         </View>
+      </LinearGradient>
 
-        {/* Name & Role */}
-        <Text style={styles.name}>{user.name}</Text>
-        <View style={styles.roleBadge}>
-          <Text style={styles.roleText}>{user.role}</Text>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        {/* Profile Card - Amazon Style */}
+        <View style={styles.profileCard}>
+          <View style={styles.profileHeader}>
+            <View style={styles.avatarContainer}>
+              <View style={styles.avatar}>
+                <Text style={styles.avatarText}>
+                  {user.name.charAt(0).toUpperCase()}
+                </Text>
+              </View>
+              <TouchableOpacity style={styles.editAvatarBtn} onPress={handleEditProfile}>
+                <MaterialIcons name="edit" size={16} color="white" />
+              </TouchableOpacity>
+            </View>
+            
+            <View style={styles.profileInfo}>
+              <Text style={styles.userName}>{user.name}</Text>
+              <View style={styles.roleBadge}>
+                <MaterialIcons name="verified" size={14} color="#059669" />
+                <Text style={styles.roleText}>{user.role}</Text>
+              </View>
+            </View>
+          </View>
+
+          {/* User Info */}
+          <View style={styles.infoSection}>
+            <InfoItem icon="email" label="Email" value={user.email} />
+            <InfoItem icon="phone" label="Phone" value={user.phone} />
+            <InfoItem icon="location-on" label="Address" value={user.address} />
+          </View>
+
+          {/* Quick Actions */}
+          <View style={styles.quickActions}>
+            <TouchableOpacity style={styles.actionButton} onPress={handleEditProfile}>
+              <MaterialIcons name="edit" size={20} color="#2563EB" />
+              <Text style={styles.actionButtonText}>Edit Profile</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={[styles.actionButton, styles.orderButton]} onPress={handleViewOrders}>
+              <MaterialIcons name="receipt" size={20} color="#8B5CF6" />
+              <Text style={[styles.actionButtonText, styles.orderButtonText]}>My Orders</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
-        {/* Info List */}
-        <View style={styles.infoContainer}>
-          <InfoRow icon="email" label="Email" value={user.email} />
-          <InfoRow icon="phone" label="Phone" value={user.phone} />
-          <InfoRow icon="location-on" label="Address" value={user.address} />
-        </View>
-
-        {/* Action Buttons */}
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.actionButton} onPress={handleEditProfile}>
-            <MaterialIcons name="edit" size={20} color="#0D9488" /> {/* CHANGED */}
-            <Text style={styles.actionButtonText}>Edit Profile</Text>
-          </TouchableOpacity>
+        {/* Amazon-style Account Section */}
+        <View style={styles.accountSection}>
+          <Text style={styles.sectionTitle}>Your Account</Text>
           
-          <TouchableOpacity style={[styles.actionButton, styles.orderButton]} onPress={handleViewOrders}>
-            <MaterialIcons name="receipt" size={20} color="#6D28D9" /> {/* CHANGED */}
-            <Text style={[styles.actionButtonText, styles.orderButtonText]}>View Orders</Text>
-          </TouchableOpacity>
+          <View style={styles.optionsGrid}>
+            {profileOptions.map((item, index) => (
+              <TouchableOpacity 
+                key={index} 
+                style={styles.optionCard}
+                onPress={item.onPress}
+                activeOpacity={0.7}
+              >
+                <View style={styles.optionIconContainer}>
+                  <MaterialIcons name={item.icon} size={24} color="#374151" />
+                </View>
+                <View style={styles.optionTextContainer}>
+                  <Text style={styles.optionTitle}>{item.title}</Text>
+                  <Text style={styles.optionSubtitle}>{item.subtitle}</Text>
+                </View>
+                <MaterialIcons name="chevron-right" size={20} color="#9CA3AF" />
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
-      </View>
 
-      {/* Additional Options */}
-      <View style={styles.optionsContainer}>
-        <OptionItem icon="settings" title="Settings" onPress={() => Alert.alert("Coming Soon", "Settings feature coming soon!")} />
-        <OptionItem icon="help-outline" title="Help & Support" onPress={() => Alert.alert("Help", "Contact support@ecommerce.com")} />
-        <OptionItem icon="privacy-tip" title="Privacy Policy" onPress={() => Alert.alert("Privacy", "Your data is safe with us!")} />
-        <OptionItem icon="star" title="Rate App" onPress={() => Alert.alert("Rate Us", "Thank you for your feedback!")} />
-      </View>
-    </View>
+        {/* Stats Section */}
+        <View style={styles.statsSection}>
+          <Text style={styles.sectionTitle}>Your Activity</Text>
+          <View style={styles.statsGrid}>
+            <View style={styles.statCard}>
+              <MaterialIcons name="shopping-cart" size={24} color="#FF9900" />
+              <Text style={styles.statNumber}>12</Text>
+              <Text style={styles.statLabel}>Orders</Text>
+            </View>
+            <View style={styles.statCard}>
+              <MaterialIcons name="favorite" size={24} color="#DC2626" />
+              <Text style={styles.statNumber}>8</Text>
+              <Text style={styles.statLabel}>Wishlist</Text>
+            </View>
+            <View style={styles.statCard}>
+              <MaterialIcons name="star" size={24} color="#F59E0B" />
+              <Text style={styles.statNumber}>4.8</Text>
+              <Text style={styles.statLabel}>Rating</Text>
+            </View>
+            <View style={styles.statCard}>
+              <MaterialIcons name="local-offer" size={24} color="#059669" />
+              <Text style={styles.statNumber}>5</Text>
+              <Text style={styles.statLabel}>Offers</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Footer */}
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>
+            MarketConnect Account • Since 2024
+          </Text>
+          <Text style={styles.footerCopyright}>
+            © 2024 MarketConnect. All rights reserved.
+          </Text>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
-// Reusable Info Row
-const InfoRow = ({ icon, label, value }) => (
-  <View style={styles.infoRow}>
-    <View style={styles.infoLeft}>
-      <MaterialIcons name={icon} size={22} color="#0D9488" /> {/* CHANGED */}
+// Info Item Component
+const InfoItem = ({ icon, label, value }) => (
+  <View style={styles.infoItem}>
+    <View style={styles.infoIconContainer}>
+      <MaterialIcons name={icon} size={18} color="#6B7280" />
+    </View>
+    <View style={styles.infoContent}>
       <Text style={styles.infoLabel}>{label}</Text>
+      <Text style={styles.infoValue} numberOfLines={1}>{value}</Text>
     </View>
-    <Text style={styles.infoValue} numberOfLines={2}>{value}</Text>
   </View>
-);
-
-// Reusable Option Item
-const OptionItem = ({ icon, title, onPress }) => (
-  <TouchableOpacity style={styles.optionItem} onPress={onPress}>
-    <View style={styles.optionLeft}>
-      <MaterialIcons name={icon} size={24} color="#475569" /> {/* CHANGED */}
-      <Text style={styles.optionTitle}>{title}</Text>
-    </View>
-    <MaterialIcons name="chevron-right" size={24} color="#94A3B8" /> {/* CHANGED */}
-  </TouchableOpacity>
 );
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#F3F4F6",
   },
-
   header: {
+    paddingTop: 20,
+    paddingBottom: 20,
+    paddingHorizontal: 16,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+  },
+  headerContent: {
     flexDirection: "row",
-    justifyContent: "center",
+    justifyContent: "space-between",
     alignItems: "center",
-    paddingTop: 60,
-    paddingBottom: 32,
-    backgroundColor: "#0D9488",
-    borderBottomLeftRadius: 32,
-    borderBottomRightRadius: 32,
-    position: "relative",
+  },
+  headerLeft: {
+    flexDirection: "row",
+    alignItems: "center",
   },
   headerTitle: {
-    fontSize: 34,
-    fontWeight: "800",
-    color: "#FFFFFF",
-    letterSpacing: -0.5,
+    fontSize: 22,
+    fontWeight: "700",
+    color: "white",
+    marginLeft: 10,
   },
   logoutBtn: {
-    position: "absolute",
-    right: 32,
-    top: 64,
-    padding: 10,
-    backgroundColor: "rgba(255,255,255,0.15)",
-    borderRadius: 16,
+    padding: 8,
+    backgroundColor: "rgba(255,255,255,0.2)",
+    borderRadius: 10,
   },
-
+  scrollView: {
+    flex: 1,
+  },
   profileCard: {
-    marginHorizontal: 24,
-    marginTop: -60,
-    backgroundColor: "#FFFFFF",
-    borderRadius: 28,
-    paddingVertical: 36,
-    paddingHorizontal: 28,
-    alignItems: "center",
+    backgroundColor: "white",
+    margin: 16,
+    borderRadius: 16,
+    padding: 20,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.18,
-    shadowRadius: 24,
-    elevation: 20,
-    borderWidth: 1.5,
-    borderColor: "#F1F5F9",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
   },
-
+  profileHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 20,
+  },
   avatarContainer: {
     position: "relative",
-    marginBottom: 24,
+    marginRight: 16,
   },
   avatar: {
-    width: 130,
-    height: 130,
-    borderRadius: 65,
-    backgroundColor: "#ECFDF5",
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    backgroundColor: "#FEF3C7",
     justifyContent: "center",
     alignItems: "center",
-    borderWidth: 8,
-    borderColor: "#FFFFFF",
-    shadowColor: "#0D9488",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.25,
-    shadowRadius: 20,
-    elevation: 16,
+    borderWidth: 3,
+    borderColor: "#FF9900",
   },
   avatarText: {
-    fontSize: 60,
-    fontWeight: "800",
-    color: "#0D9488",
+    fontSize: 28,
+    fontWeight: "700",
+    color: "#92400E",
   },
   editAvatarBtn: {
     position: "absolute",
-    bottom: 8,
-    right: 0,
-    backgroundColor: "#0D9488",
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    bottom: -2,
+    right: -2,
+    backgroundColor: "#FF9900",
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     justifyContent: "center",
     alignItems: "center",
-    borderWidth: 4,
-    borderColor: "#FFFFFF",
-    shadowColor: "#000",
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 10,
+    borderWidth: 2,
+    borderColor: "white",
   },
-
-  name: {
-    fontSize: 30,
-    fontWeight: "800",
-    color: "#1E293B",
-    marginBottom: 8,
-    textAlign: "center",
+  profileInfo: {
+    flex: 1,
+  },
+  userName: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#1F2937",
+    marginBottom: 4,
   },
   roleBadge: {
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: "#F0FDF4",
-    paddingHorizontal: 20,
-    paddingVertical: 8,
-    borderRadius: 20,
-    marginBottom: 32,
-    borderWidth: 1.5,
-    borderColor: "#BBF7D0",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    alignSelf: "flex-start",
   },
   roleText: {
-    color: "#16A34A",
-    fontSize: 15,
-    fontWeight: "700",
+    color: "#059669",
+    fontSize: 12,
+    fontWeight: "600",
+    marginLeft: 4,
   },
-
-  infoContainer: {
-    width: "100%",
-    backgroundColor: "#F8FAFC",
-    borderRadius: 20,
-    padding: 24,
-    marginBottom: 32,
+  infoSection: {
+    backgroundColor: "#F9FAFB",
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 20,
   },
-  infoRow: {
+  infoItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E5E7EB",
+  },
+  infoIconContainer: {
+    width: 32,
+  },
+  infoContent: {
+    flex: 1,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#E2E8F0",
-  },
-  infoLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    flex: 1,
   },
   infoLabel: {
-    fontSize: 16,
-    color: "#64748B",
-    fontWeight: "600",
-    marginLeft: 14,
+    fontSize: 14,
+    color: "#6B7280",
+    fontWeight: "500",
   },
   infoValue: {
-    fontSize: 16,
-    color: "#1E293B",
-    fontWeight: "600",
-    textAlign: "right",
+    fontSize: 14,
+    color: "#1F2937",
+    fontWeight: "500",
     flex: 1,
+    textAlign: "right",
+    marginLeft: 8,
   },
-
-  buttonContainer: {
+  quickActions: {
     flexDirection: "row",
     justifyContent: "space-between",
-    width: "100%",
-    marginBottom: 20,
+    gap: 12,
   },
   actionButton: {
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#F0FDF4",
-    paddingVertical: 14,
+    backgroundColor: "#EFF6FF",
+    paddingVertical: 12,
     paddingHorizontal: 16,
-    borderRadius: 14,
-    marginHorizontal: 6,
-    borderWidth: 1.5,
-    borderColor: "#BBF7D0",
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#DBEAFE",
   },
   orderButton: {
     backgroundColor: "#F5F3FF",
-    borderColor: "#DDD6FE",
+    borderColor: "#EDE9FE",
   },
   actionButtonText: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: "#0D9488",
-    marginLeft: 8,
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#2563EB",
+    marginLeft: 6,
   },
   orderButtonText: {
-    color: "#6D28D9",
+    color: "#8B5CF6",
   },
-
-  optionsContainer: {
-    marginTop: 20,
-    marginHorizontal: 24,
-    backgroundColor: "#FFFFFF",
-    borderRadius: 20,
-    padding: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
+  accountSection: {
+    backgroundColor: "white",
+    marginHorizontal: 16,
+    marginBottom: 16,
+    borderRadius: 16,
+    padding: 20,
     borderWidth: 1,
-    borderColor: "#F1F5F9",
+    borderColor: "#E5E7EB",
   },
-  optionItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#F1F5F9",
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#1F2937",
+    marginBottom: 16,
   },
-  optionLeft: {
+  optionsGrid: {
+    gap: 12,
+  },
+  optionCard: {
     flexDirection: "row",
     alignItems: "center",
+    backgroundColor: "#F9FAFB",
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+  },
+  optionIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#F3F4F6",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+  optionTextContainer: {
+    flex: 1,
   },
   optionTitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "600",
-    color: "#1E293B",
-    marginLeft: 16,
+    color: "#1F2937",
+    marginBottom: 2,
+  },
+  optionSubtitle: {
+    fontSize: 12,
+    color: "#6B7280",
+  },
+  statsSection: {
+    backgroundColor: "white",
+    marginHorizontal: 16,
+    marginBottom: 16,
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+  },
+  statsGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 12,
+  },
+  statCard: {
+    width: "48%",
+    backgroundColor: "#F9FAFB",
+    alignItems: "center",
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+  },
+  statNumber: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#1F2937",
+    marginTop: 8,
+    marginBottom: 4,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: "#6B7280",
+    fontWeight: "500",
+  },
+  footer: {
+    padding: 16,
+    paddingBottom: 32,
+    alignItems: "center",
+  },
+  footerText: {
+    fontSize: 12,
+    color: "#6B7280",
+    marginBottom: 8,
+  },
+  footerCopyright: {
+    fontSize: 11,
+    color: "#9CA3AF",
   },
 });
